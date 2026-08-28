@@ -1,0 +1,25 @@
+<Solution>
+    <Folder Name="/daybreak-mod/">
+        <File Path="daybreak-mod/src/DaybreakModuleAttribute.cs" />
+        <File Path="daybreak-mod/src/Module.props" />
+        <Project Path="daybreak-mod/src/Daybreak.ChatTags.V1/Daybreak.ChatTags.V1.csproj" />
+        <Project Path="daybreak-mod/src/Daybreak.CodeAnalysis/Daybreak.CodeAnalysis.csproj" />
+        <Project Path="daybreak-mod/src/Daybreak.Contracts.V1/Daybreak.Contracts.V1.csproj" />
+        <Project Path="daybreak-mod/src/Daybreak.EarlyLoader.V1/Daybreak.EarlyLoader.V1.csproj" />
+        <Project Path="daybreak-mod/src/Daybreak.Hooks.V1/Daybreak.Hooks.V1.csproj" />
+        <Project Path="daybreak-mod/src/Daybreak.Mathematics.V1/Daybreak.Mathematics.V1.csproj" />
+        <Project Path="daybreak-mod/src/Daybreak.Models.V1/Daybreak.Models.V1.csproj" />
+        <Project Path="daybreak-mod/src/Daybreak.MonoMod.V1/Daybreak.MonoMod.V1.csproj" />
+        <Project Path="daybreak-mod/src/Daybreak.Networking.V1/Daybreak.Networking.V1.csproj" />
+        <Project Path="daybreak-mod/src/Daybreak.Rendering.Buffers.Entities.V1/Daybreak.Rendering.Buffers.Entities.V1.csproj" />
+        <Project Path="daybreak-mod/src/Daybreak.Rendering.Buffers.V1/Daybreak.Rendering.Buffers.V1.csproj" />
+        <Project Path="daybreak-mod/src/Daybreak.Rendering.V1/Daybreak.Rendering.V1.csproj" />
+        <Project Path="daybreak-mod/src/Daybreak.Resources.V1/Daybreak.Resources.V1.csproj" />
+        <Project Path="daybreak-mod/src/Daybreak/Daybreak.csproj" />
+    </Folder>
+
+    <Folder Name="/improved-interface/">
+        <File Path="GlobalUsings.cs" />
+        <Project Path="ImprovedInterface/ImprovedInterface.csproj" />
+    </Folder>
+</Solution>

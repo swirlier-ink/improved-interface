@@ -1,0 +1,15 @@
+.vs/
+.vscode/
+.idea/
+
+bin/
+obj/
+
+*.user
+
+# Binaries
+*.fxc
+
+# Libraries (TODO: Revise if non-Daybreak libraries are needed)
+lib/
+libanalyzer/
