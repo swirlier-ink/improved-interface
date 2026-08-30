@@ -8,7 +8,8 @@ namespace ImprovedInterface.Content.PauseMenu;
 
 public static class PauseMenuReplacement
 {
-    private static UserInterface pauseInterface = new UserInterface();
+    private static readonly UserInterface @interface = new UserInterface();
+    private static PauseMenuState? state;
 
     [ModSystemHooks.UpdateUI]
     private static void UpdateUI(GameTime gameTime)
@@ -18,7 +19,7 @@ public static class PauseMenuReplacement
             return;
         }
 
-        pauseInterface.Update(gameTime);
+        @interface.Update(gameTime);
     }
 
     [GameInterfaceLayers.Replace(GameInterfaceLayers.IN_GAME_OPTIONS, InterfaceScaleType.UI, Name = $"{nameof(ImprovedInterface)}: Pause Menu")]
@@ -26,12 +27,14 @@ public static class PauseMenuReplacement
     {
         if (!Main.ingameOptionsWindow)
         {
-            pauseInterface.State = null;
+            @interface.State = null;
+            state = null;
 
             return true;
         }
 
-        // pauseInterface.State = ;
+        state ??= new PauseMenuState();
+        @interface.State = state;
 
         var sb = Main.spriteBatch;
 
@@ -46,14 +49,20 @@ public static class PauseMenuReplacement
 
         sb.Restart(in ss);
         {
-            pauseInterface.Draw(sb, Main.instance.gameTime);
+            @interface.Draw(sb, Main.instance.gameTime);
 
             Main.instance.DrawMouseOver();
+
+            // Should be drawn even if vanilla conditions would disable it as to preview settings
+            Main.instance.GUIBarsDraw();
+
+            Main.DrawInterface_29_SettingsButton();
         }
         sb.Restart(ss with { SamplerState = Main.SamplerStateForCursor });
         {
             Main.DrawCursor(Main.DrawThickCursor());
 
+            // The vanilla pause menu draws the interact icon with Main.SamplerStateForCursor, should we replicate this?
             Main.instance.DrawInterface_40_InteractItemIcon();
         }
 
