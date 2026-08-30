@@ -1,7 +1,11 @@
-﻿using ImprovedInterface.Common;
+﻿using System;
+using ImprovedInterface.Common;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Terraria;
+using Terraria.GameContent;
 using Terraria.GameInput;
+using Terraria.Graphics.Effects;
 using Terraria.UI;
 
 namespace ImprovedInterface.Content.PauseMenu;
@@ -67,6 +71,54 @@ public static class PauseMenuReplacement
         }
 
         // Return false as the pause menu stops all further layers from rendering
+        return false;
+    }
+
+    private static float pauseFade;
+
+    [ScreenFilter(EffectPriority.VeryHigh)]
+    private static bool ScreenOverlay(SpriteBatch sb, GraphicsDevice device, RenderTarget2D screen, RenderTarget2D screenSwap)
+    {
+        var horizBlur = Assets.PauseMenu.ScreenBlur.CreateHorizontalShader();
+        var vertBlur = Assets.PauseMenu.ScreenBlur.CreateVerticalShader();
+
+        pauseFade += Main.ingameOptionsWindow.ToDirectionInt() * 0.07f;
+        pauseFade = MathF.Saturate(pauseFade);
+
+        if (pauseFade == 0f)
+        {
+            return false;
+        }
+
+        var blur = MathF.Pow(pauseFade, 2f) * 16f;
+
+        var blurSize = new Vector2(blur) / new Vector2(Main.screenWidth, Main.screenHeight);
+
+        device.SetRenderTarget(screenSwap);
+        device.Clear(Color.Transparent);
+
+        sb.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, null, null, null, Matrix.Identity);
+        {
+            horizBlur.Parameters.BlurSize = blurSize;
+            horizBlur.Apply();
+
+            sb.Draw(screen, Vector2.Zero, Color.White);
+        }
+        sb.End();
+
+        device.SetRenderTarget(screen);
+        device.Clear(Color.Transparent);
+
+        sb.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, null, null, null, Matrix.Identity);
+        {
+            vertBlur.Parameters.BlurSize = blurSize;
+            vertBlur.Apply();
+
+            sb.Draw(screenSwap, Vector2.Zero, Color.White);
+        }
+        sb.End();
+
+        // Return false as we're drawing back to the first target, so no swap is needed
         return false;
     }
 }
