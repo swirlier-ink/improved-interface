@@ -2,8 +2,16 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoMod.Cil;
+using Steamworks;
+using System;
+using System.Threading;
 using Terraria;
+using Terraria.Audio;
 using Terraria.GameContent.UI.Elements;
+using Terraria.Graphics.Capture;
+using Terraria.ID;
+using Terraria.IO;
+using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 
@@ -11,12 +19,94 @@ namespace ImprovedInterface.Content.PauseMenu;
 
 public sealed class PauseMenuState : UIState
 {
+    public enum NetModeVisibility
+    {
+        Always,
+        SinglePlayer,
+        MultiplayerClient,
+    }
+
+    private readonly record struct OptionInfo(LocalizedText Text, MouseEvent OnClick, NetModeVisibility Visibility);
+
+    private static readonly OptionInfo[] options =
+    [
+        new(Mods.ImprovedInterface.PauseMenu.Continue.GetText(), ClickContinue, NetModeVisibility.Always),
+        new(Mods.ImprovedInterface.PauseMenu.Save.GetText(), ClickSave, NetModeVisibility.SinglePlayer),
+        new(Mods.ImprovedInterface.PauseMenu.Settings.GetText(), ClickSettings, NetModeVisibility.Always),
+        new(Mods.ImprovedInterface.PauseMenu.Achievements.GetText(), ClickAchievements, NetModeVisibility.Always),
+        new(Mods.ImprovedInterface.PauseMenu.SaveAndQuit.GetText(), ClickQuit, NetModeVisibility.SinglePlayer),
+        new(Mods.ImprovedInterface.PauseMenu.Disconnect.GetText(), ClickQuit, NetModeVisibility.MultiplayerClient),
+    ];
+
+    private static void ClickContinue(UIMouseEvent evt, UIElement listeningElement)
+    {
+        Main.ingameOptionsWindow = false;
+        SoundEngine.PlaySound(in SoundID.MenuClose);
+
+        Main.playerInventory = true;
+
+        // Irrelevant, should be handled by our settings menu
+        // Main.SaveSettings();
+    }
+
+    private static void ClickSave(UIMouseEvent evt, UIElement listeningElement)
+    {
+        // TODO: Callback that has the text go from 'Saving...' to 'Saved' and turns grey and becomes no longer interactable
+        WorldGen.saveAndPlay();
+    }
+
+    private static void ClickSettings(UIMouseEvent evt, UIElement listeningElement)
+    {
+        // TODO
+    }
+
+    private static void ClickAchievements(UIMouseEvent evt, UIElement listeningElement)
+    {
+        // TODO
+    }
+
+    private static void ClickQuit(UIMouseEvent evt, UIElement listeningElement)
+    {
+        Main.menuMode = MenuID.Status;
+        Main.gameMenu = true;
+        WorldGen.SaveAndQuit();
+    }
+
+    private UIElement? textContainer;
+    private UIElement? logoContainer;
+
     public override void OnInitialize()
     {
-        var logoContainer = new UIElement();
+        textContainer = new UIElement();
+        {
+            textContainer.Left.Set(60f, 0f);
+            textContainer.VAlign = 0.5f;
+            textContainer.MinHeight.Set(225f, 0f);
+            textContainer.Width.Set(0f, 0.2f);
+        }
+        Append(textContainer);
+
+        // TODO: loc
+        var header = new UIText(Mods.ImprovedInterface.PauseMenu.Paused.GetText(), 1f, true);
+        textContainer.Append(header);
+
+        var buttonList = new UIList();
+        {
+            var topPadding = header.MinHeight.Pixels + 26;
+
+            buttonList.Top.Set(topPadding, 0f);
+            buttonList.Height.Set(-topPadding, 1f);
+            buttonList.Width.Set(0f, 1f);
+            buttonList.ListPadding = 18f;
+        }
+        textContainer.Append(buttonList);
+
+        AddButtons();
+
+        logoContainer = new UIElement();
         {
             logoContainer.Left.Set(0f, 0f);
-            logoContainer.Height.Set(0f, 0.3f);
+            logoContainer.Height.Set((Main.screenHeight - textContainer.Dimensions.Height) * 0.5f, 0f);
             logoContainer.Width.Set(0f, 1f);
             logoContainer.IgnoresMouseInteraction = true;
         }
@@ -26,30 +116,52 @@ public sealed class PauseMenuState : UIState
         {
             logo.Width.Set(0f, 1f);
 
-            logo.Height.Set(0f, 0.8f);
-            logo.MinHeight.Set(140f, 0f);
+            logo.Height.Set(250f, 0f);
 
-            logo.LogoX.Set(40f, 0.14f);
+            logo.LogoX.Set(40f, 0.09f);
 
             logo.VAlign = 1f;
         }
         logoContainer.Append(logo);
 
-        var buttonContainer = new UIElement();
-        {
-            buttonContainer.Left.Set(60f, 0f);
-            buttonContainer.VAlign = 0.5f;
-            buttonContainer.Height.Set(0f, 0.4f);
-            buttonContainer.MinHeight.Set(400f, 0f);
-            buttonContainer.Width.Set(0f, 0.2f);
-        }
-        Append(buttonContainer);
+        return;
 
-        // TODO: loc
-        var header = new UIText("Paused", 1f, true);
+        void AddButtons()
         {
+            foreach (var (text, evt, visibility) in options)
+            {
+                var allowButton = visibility switch
+                {
+                    NetModeVisibility.SinglePlayer => Main.netMode == NetmodeID.SinglePlayer,
+                    NetModeVisibility.MultiplayerClient => Main.netMode == NetmodeID.MultiplayerClient,
+                    _ => true,
+                };
+
+                if (!allowButton)
+                {
+                    continue;
+                }
+
+                var button = new UIText(text, 0.45f, true);
+                {
+                    button.OnLeftClick += evt;
+                }
+                buttonList.Add(button);
+            }
         }
-        buttonContainer.Append(header);
+    }
+
+    public override void Update(GameTime gameTime)
+    {
+        base.Update(gameTime);
+
+        if (textContainer is null
+         || logoContainer is null)
+        {
+            return;
+        }
+
+        logoContainer.Height.Set((Main.screenHeight - textContainer.Dimensions.Height) * 0.5f, 0f);
     }
 }
 
