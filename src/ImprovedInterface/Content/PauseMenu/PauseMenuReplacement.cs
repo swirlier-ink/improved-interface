@@ -90,7 +90,7 @@ public static class PauseMenuReplacement
             return false;
         }
 
-        var blur = MathF.Pow(pauseFade, 2f) * 16f;
+        var blur = (1f - MathF.Pow(1f - pauseFade, 2f)) * 16f;
 
         var blurSize = new Vector2(blur) / new Vector2(Main.screenWidth, Main.screenHeight);
 
