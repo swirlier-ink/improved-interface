@@ -127,7 +127,7 @@ public sealed class PauseMenuState : UIState
         {
             textContainer.Left.Set(60f, 0f);
             textContainer.VAlign = 0.5f;
-            textContainer.MinHeight.Set(245f, 0f);
+            textContainer.MinHeight.Set(255f, 0f);
             textContainer.Width.Set(0f, 0.1f);
             textContainer.MinWidth.Set(200f, 0f);
         }
@@ -141,7 +141,7 @@ public sealed class PauseMenuState : UIState
 
         var buttonList = new UIList();
         {
-            var topPadding = header.MinHeight.Pixels + 12;
+            var topPadding = header.MinHeight.Pixels + 24;
 
             buttonList.Top.Set(topPadding, 0f);
             buttonList.Height.Set(-topPadding, 1f);
