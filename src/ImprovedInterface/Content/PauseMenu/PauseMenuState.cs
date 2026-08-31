@@ -133,7 +133,6 @@ public sealed class PauseMenuState : UIState
         }
         Append(textContainer);
 
-        // TODO: loc
         var header = new UIText(Mods.ImprovedInterface.PauseMenu.Paused.GetText(), 1f, true);
         {
             header.OnUpdate += OnUpdate_Header;
