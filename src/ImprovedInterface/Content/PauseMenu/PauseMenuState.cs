@@ -207,12 +207,12 @@ public sealed class PauseMenuState : UIState
                     continue;
                 }
 
-                var button = new TextOption(text, evt, 0.45f, true);
+                var button = new TextOption(text, evt, 0.5f, true);
                 {
                     button.Width.Set(0f, 1f);
                     button.TextOriginX = 0f;
 
-                    button.Height.Set(30f, 0f);
+                    button.Height.Set(35f, 0f);
                 }
                 buttonList.Add(button);
             }
@@ -235,8 +235,8 @@ public sealed class PauseMenuState : UIState
 
 file sealed class TextOption : UIText
 {
-    private const float base_scale = 0.45f;
-    private const float hover_scale = 0.55f;
+    private const float base_scale = 0.5f;
+    private const float hover_scale = 0.6f;
 
     private static readonly Color default_color = Color.White;
     private static readonly Color hover_color = Main.OurFavoriteColor;
