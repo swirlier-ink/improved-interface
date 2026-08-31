@@ -117,6 +117,14 @@ public static class PauseMenuReplacement
             sb.Draw(screenSwap, Vector2.Zero, Color.White);
         }
         sb.End();
+        sb.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, null, null, null, Matrix.Identity);
+        {
+            var color = Color.Black * (1f - MathF.Pow(1f - pauseFade, 2f));
+            color *= 0.35f;
+
+            sb.Draw(TextureAssets.MagicPixel.Value, device.Viewport.Bounds, color);
+        }
+        sb.End();
 
         // Return false as we're drawing back to the first target, so no swap is needed
         return false;
