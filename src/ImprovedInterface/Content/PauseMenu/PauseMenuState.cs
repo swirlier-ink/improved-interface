@@ -13,7 +13,9 @@ using Terraria.ID;
 using Terraria.IO;
 using Terraria.Localization;
 using Terraria.ModLoader;
+using Terraria.Social;
 using Terraria.UI;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ImprovedInterface.Content.PauseMenu;
 
@@ -24,6 +26,7 @@ public sealed class PauseMenuState : UIState
         Always,
         SinglePlayer,
         MultiplayerClient,
+        CanInvite,
     }
 
     private readonly record struct OptionInfo(LocalizedText Text, MouseEvent OnClick, NetModeVisibility Visibility);
@@ -34,6 +37,7 @@ public sealed class PauseMenuState : UIState
         new(Mods.ImprovedInterface.PauseMenu.Save.GetText(), ClickSave, NetModeVisibility.SinglePlayer),
         new(Mods.ImprovedInterface.PauseMenu.Settings.GetText(), ClickSettings, NetModeVisibility.Always),
         new(Mods.ImprovedInterface.PauseMenu.Achievements.GetText(), ClickAchievements, NetModeVisibility.Always),
+        new(Mods.ImprovedInterface.PauseMenu.InvitePlayers.GetText(), ClickInvitePlayers, NetModeVisibility.CanInvite),
         new(Mods.ImprovedInterface.PauseMenu.SaveAndQuit.GetText(), ClickQuit, NetModeVisibility.SinglePlayer),
         new(Mods.ImprovedInterface.PauseMenu.Disconnect.GetText(), ClickQuit, NetModeVisibility.MultiplayerClient),
     ];
@@ -51,8 +55,41 @@ public sealed class PauseMenuState : UIState
 
     private static void ClickSave(UIMouseEvent evt, UIElement listeningElement)
     {
-        // TODO: Callback that has the text go from 'Saving...' to 'Saved' and turns grey and becomes no longer interactable
-        WorldGen.saveAndPlay();
+        WorldFile.SetTempToOngoing();
+        ThreadPool.QueueUserWorkItem(WrappedSaveAndPlay, 1);
+
+        SoundEngine.PlaySound(in SoundID.MenuOpen);
+
+        return;
+
+        void WrappedSaveAndPlay(object? threadContext)
+        {
+            if (listeningElement is not TextOption option)
+            {
+                WorldGen.saveAndPlayCallBack(threadContext);
+
+                return;
+            }
+
+            try
+            {
+                option.SetText(Mods.ImprovedInterface.PauseMenu.Save.Saving.GetText());
+
+                option.Working = true;
+
+                WorldGen.saveAndPlayCallBack(threadContext);
+
+                option.SetText(Mods.ImprovedInterface.PauseMenu.Save.Saved.GetText());
+            }
+            catch
+            {
+                // TODO
+            }
+            finally
+            {
+                option.Working = false;
+            }
+        }
     }
 
     private static void ClickSettings(UIMouseEvent evt, UIElement listeningElement)
@@ -65,11 +102,20 @@ public sealed class PauseMenuState : UIState
         // TODO
     }
 
+    private static void ClickInvitePlayers(UIMouseEvent evt, UIElement listeningElement)
+    {
+        SocialAPI.Network.OpenInviteInterface();
+
+        SoundEngine.PlaySound(in SoundID.MenuOpen);
+    }
+
     private static void ClickQuit(UIMouseEvent evt, UIElement listeningElement)
     {
         Main.menuMode = MenuID.Status;
         Main.gameMenu = true;
         WorldGen.SaveAndQuit();
+
+        SoundEngine.PlaySound(in SoundID.MenuClose);
     }
 
     private UIElement? textContainer;
@@ -81,23 +127,29 @@ public sealed class PauseMenuState : UIState
         {
             textContainer.Left.Set(60f, 0f);
             textContainer.VAlign = 0.5f;
-            textContainer.MinHeight.Set(225f, 0f);
-            textContainer.Width.Set(0f, 0.2f);
+            textContainer.MinHeight.Set(245f, 0f);
+            textContainer.Width.Set(0f, 0.1f);
+            textContainer.MinWidth.Set(200f, 0f);
         }
         Append(textContainer);
 
         // TODO: loc
         var header = new UIText(Mods.ImprovedInterface.PauseMenu.Paused.GetText(), 1f, true);
+        {
+            header.OnUpdate += OnUpdate_Header;
+        }
         textContainer.Append(header);
 
         var buttonList = new UIList();
         {
-            var topPadding = header.MinHeight.Pixels + 26;
+            var topPadding = header.MinHeight.Pixels + 12;
 
             buttonList.Top.Set(topPadding, 0f);
             buttonList.Height.Set(-topPadding, 1f);
             buttonList.Width.Set(0f, 1f);
-            buttonList.ListPadding = 18f;
+            buttonList.ListPadding = 2f;
+
+            buttonList.OverflowHidden = false;
         }
         textContainer.Append(buttonList);
 
@@ -126,6 +178,19 @@ public sealed class PauseMenuState : UIState
 
         return;
 
+        static void OnUpdate_Header(UIElement affectedElement)
+        {
+            if (affectedElement is not UIText text)
+            {
+                return;
+            }
+
+            text.TextColor = Color.White * ((float)Main.mouseTextColor / byte.MaxValue);
+
+            // Refresh the color
+            text.InternalSetText(text._text, text._textScale, text._isLarge);
+        }
+
         void AddButtons()
         {
             foreach (var (text, evt, visibility) in options)
@@ -134,6 +199,7 @@ public sealed class PauseMenuState : UIState
                 {
                     NetModeVisibility.SinglePlayer => Main.netMode == NetmodeID.SinglePlayer,
                     NetModeVisibility.MultiplayerClient => Main.netMode == NetmodeID.MultiplayerClient,
+                    NetModeVisibility.CanInvite => SocialAPI.Network != null && SocialAPI.Network.CanInvite(),
                     _ => true,
                 };
 
@@ -142,9 +208,12 @@ public sealed class PauseMenuState : UIState
                     continue;
                 }
 
-                var button = new UIText(text, 0.45f, true);
+                var button = new TextOption(text, evt, 0.45f, true);
                 {
-                    button.OnLeftClick += evt;
+                    button.Width.Set(0f, 1f);
+                    button.TextOriginX = 0f;
+
+                    button.Height.Set(30f, 0f);
                 }
                 buttonList.Add(button);
             }
@@ -162,6 +231,82 @@ public sealed class PauseMenuState : UIState
         }
 
         logoContainer.Height.Set((Main.screenHeight - textContainer.Dimensions.Height) * 0.5f, 0f);
+    }
+}
+
+file sealed class TextOption : UIText
+{
+    private const float base_scale = 0.45f;
+    private const float hover_scale = 0.55f;
+
+    private static readonly Color default_color = Color.White;
+    private static readonly Color hover_color = Main.OurFavoriteColor;
+    private static readonly Color working_color = (Color.White * 0.5f) with { A = byte.MaxValue };
+
+    private object textCache;
+
+    public bool Working
+    {
+        get;
+        set
+        {
+            IgnoresMouseInteraction = value;
+
+            field = value;
+
+            if (value)
+            {
+                textCache = _text;
+            }
+        }
+    }
+
+    public TextOption(LocalizedText text, MouseEvent evt, float textScale = 1, bool large = false)
+        : base(text, textScale, large)
+    {
+        OnLeftClick += evt;
+
+        textCache = text;
+
+        TextOriginY = 0.5f;
+        TextColor = default_color;
+    }
+
+    public override void MouseOver(UIMouseEvent evt)
+    {
+        base.MouseOver(evt);
+
+        SoundEngine.PlaySound(in SoundID.MenuTick);
+    }
+
+    private float scaleInterpolator;
+
+    public override void Update(GameTime gameTime)
+    {
+        base.Update(gameTime);
+
+        scaleInterpolator += 0.15f * (IsMouseHovering && !Working).ToDirectionInt();
+        scaleInterpolator = MathF.Saturate(scaleInterpolator);
+
+        _textScale = MathF.Lerp(base_scale, hover_scale, 1f - MathF.Pow(1f - scaleInterpolator, 2f));
+
+        if (Working)
+        {
+            TextColor = working_color * ((float)Main.mouseTextColor / byte.MaxValue);
+
+            var frame = (int)(Main.GlobalTimeWrappedHourly * 2.5f);
+
+            SetText($"{textCache}{new string('.', (frame % 3) + 1)}");
+
+            return;
+        }
+
+        TextColor = IsMouseHovering
+            ? hover_color
+            : (default_color * ((float)Main.mouseTextColor / byte.MaxValue));
+
+        // Refresh the color
+        InternalSetText(_text, _textScale, _isLarge);
     }
 }
 

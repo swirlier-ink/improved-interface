@@ -1,6 +1,13 @@
 Paused: Paused
 Continue: Continue
-Save: Save
+
+Save: {
+	$parentVal: Save
+	Saving: Saving
+	Saved: Saved!
+}
+
+InvitePlayers: Invite Friends
 Settings: Settings
 Achievements: Achievements
 SaveAndQuit: Save & Quit
