@@ -7,15 +7,18 @@ using System;
 using System.Threading;
 using Terraria;
 using Terraria.Audio;
+using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
 using Terraria.Graphics.Capture;
 using Terraria.ID;
 using Terraria.IO;
 using Terraria.Localization;
 using Terraria.ModLoader;
+using Terraria.ModLoader.Default;
 using Terraria.Social;
 using Terraria.UI;
 using static System.Net.Mime.MediaTypeNames;
+using static Terraria.GameContent.Animations.Actions.Sprites;
 
 namespace ImprovedInterface.Content.PauseMenu;
 
@@ -168,8 +171,6 @@ public sealed class PauseMenuState : UIState
             logo.Width.Set(0f, 1f);
 
             logo.Height.Set(250f, 0f);
-
-            logo.LogoX.Set(40f, 0.09f);
 
             logo.VAlign = 1f;
         }
@@ -336,8 +337,6 @@ file sealed class LogoElement : UIElement
         c.EmitOr();
     }
 
-    public StyleDimension LogoX;
-
     public override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
@@ -354,9 +353,12 @@ file sealed class LogoElement : UIElement
         var logoOrigin = logo.Size() * 0.5f;
 
         var position = this.Dimensions.Left();
-        position.X += LogoX.GetValue(this.Dimensions.Width);
+        position.X += logoOrigin.X * 1.35f;
 
-        var color = Color.White;
+        var multiplier = (1f + ((float)Main.tileColor.R / byte.MaxValue) * 2f) / 3f;
+
+        var color = Color.White * multiplier;
+        color.A = byte.MaxValue;
 
         var rotation = Main.instance.logoRotation;
         var scale = Main.instance.logoScale;
@@ -367,6 +369,44 @@ file sealed class LogoElement : UIElement
             sb.Draw(logo, position, null, color, rotation, logoOrigin, scale, SpriteEffects.None, 0f);
         }
         menu.PostDrawLogo(sb, position, rotation, scale, color);
+
+        if (MenuLoader.currentMenu
+         is MenuOldVanilla 
+         or MenuBiggerAndBoulder
+         or MenuJourneysEnd)
+        {
+            DrawVanillaLogo();
+        }
+
+        return;
+
+        void DrawVanillaLogo()
+        {
+            var logoDay = MenuLoader.currentMenu switch
+            {
+                MenuOldVanilla => TextureAssets.Logo3.Value,
+                MenuBiggerAndBoulder => TextureAssets.Logo5.Value,
+                _ => TextureAssets.Logo.Value,
+            };
+
+            var logoNight = MenuLoader.currentMenu switch
+            {
+                MenuOldVanilla => TextureAssets.Logo4.Value,
+                MenuBiggerAndBoulder => TextureAssets.Logo6.Value,
+                _ => TextureAssets.Logo2.Value,
+            };
+
+            logoOrigin = logoDay.Size() * 0.5f;
+
+            var colorDay = color * ((float)Main.LogoA / byte.MaxValue);
+            var colorNight = color * ((float)Main.LogoB / byte.MaxValue);
+
+            position = this.Dimensions.Left();
+            position.X += logoOrigin.X * 1.35f;
+
+            sb.Draw(logoDay, position, null, colorDay, rotation, logoOrigin, scale, SpriteEffects.None, 0f);
+            sb.Draw(logoNight, position, null, colorNight, rotation, logoOrigin, scale, SpriteEffects.None, 0f);
+        }
     }
 
     private static void UpdateLogo()
@@ -397,6 +437,36 @@ file sealed class LogoElement : UIElement
         else
         {
             Update();
+        }
+
+        if (Main.dayTime && !Main.remixWorld)
+        {
+            Main.LogoA += 2;
+            if (Main.LogoA > 255)
+            {
+                Main.LogoA = 255;
+            }
+            Main.LogoB--;
+            if (Main.LogoB < 0)
+            {
+                Main.LogoB = 0;
+            }
+        }
+        else
+        {
+            Main.LogoB += 2;
+            if (Main.LogoB > 255)
+            {
+                Main.LogoB = 255;
+            }
+
+            Main.LogoA--;
+
+            if (Main.LogoA < 0)
+            {
+                Main.LogoA = 0;
+                // Main.LogoT = true; - Unused, should this still be set?
+            }
         }
 
         return;
