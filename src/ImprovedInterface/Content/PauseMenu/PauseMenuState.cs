@@ -126,54 +126,54 @@ public sealed class PauseMenuState : UIState
 
     public override void OnInitialize()
     {
-        textContainer = new UIElement();
+        textContainer = new UIElement()
         {
-            textContainer.Left.Set(60f, 0f);
-            textContainer.VAlign = 0.5f;
-            textContainer.MinHeight.Set(255f, 0f);
-            textContainer.Width.Set(0f, 0.1f);
-            textContainer.MinWidth.Set(200f, 0f);
-        }
+            Left = StyleDimension.FromPixelsAndPercent(60f, 0f),
+            VAlign = 0.5f,
+            MinHeight = StyleDimension.FromPixelsAndPercent(255f, 0f),
+            Width = StyleDimension.FromPixelsAndPercent(0f, 0.1f),
+            MinWidth = StyleDimension.FromPixelsAndPercent(200f, 0f)
+        };
         Append(textContainer);
 
         var header = new UIText(Mods.ImprovedInterface.PauseMenu.Paused.GetText(), 1f, true);
         {
+            header.TextColor = Color.Transparent;
             header.OnUpdate += OnUpdate_Header;
         }
         textContainer.Append(header);
 
-        var buttonList = new UIList();
+        var topPadding = header.MinHeight.Pixels + 24;
+        var buttonList = new UIList()
         {
-            var topPadding = header.MinHeight.Pixels + 24;
+            Top = StyleDimension.FromPixelsAndPercent(topPadding, 0f),
+            Height = StyleDimension.FromPixelsAndPercent(-topPadding, 1f),
+            Width = StyleDimension.FromPixelsAndPercent(0f, 1f),
+            ListPadding = 2f,
 
-            buttonList.Top.Set(topPadding, 0f);
-            buttonList.Height.Set(-topPadding, 1f);
-            buttonList.Width.Set(0f, 1f);
-            buttonList.ListPadding = 2f;
-
-            buttonList.OverflowHidden = false;
-        }
+            OverflowHidden = false
+        };
         textContainer.Append(buttonList);
 
         AddButtons();
 
-        logoContainer = new UIElement();
+        logoContainer = new UIElement()
         {
-            logoContainer.Left.Set(0f, 0f);
-            logoContainer.Height.Set((Main.screenHeight - textContainer.Dimensions.Height) * 0.5f, 0f);
-            logoContainer.Width.Set(0f, 1f);
-            logoContainer.IgnoresMouseInteraction = true;
-        }
+            Left = StyleDimension.FromPixelsAndPercent(0f, 0f),
+            Height = StyleDimension.FromPixelsAndPercent((Main.screenHeight - textContainer.Dimensions.Height) * 0.5f, 0f),
+            Width = StyleDimension.FromPixelsAndPercent(0f, 1f),
+            IgnoresMouseInteraction = true
+        };
         Append(logoContainer);
 
-        var logo = new LogoElement();
+        var logo = new LogoElement()
         {
-            logo.Width.Set(0f, 1f);
+            Width = StyleDimension.FromPixelsAndPercent(0f, 1f),
 
-            logo.Height.Set(250f, 0f);
+            Height = StyleDimension.FromPixelsAndPercent(250f, 0f),
 
-            logo.VAlign = 1f;
-        }
+            VAlign = 1f
+        };
         logoContainer.Append(logo);
 
         return;
@@ -185,7 +185,7 @@ public sealed class PauseMenuState : UIState
                 return;
             }
 
-            text.TextColor = Color.White * ((float)Main.mouseTextColor / byte.MaxValue);
+            text.TextColor = Color.White * ((float)Main.mouseTextColor / byte.MaxValue) * PauseMenuReplacement.PauseFade;
 
             // Refresh the color
             text.InternalSetText(text._text, text._textScale, text._isLarge);
@@ -208,13 +208,16 @@ public sealed class PauseMenuState : UIState
                     continue;
                 }
 
-                var button = new TextOption(text, evt, 0.5f, true);
+                var button = new TextOption(text, evt, 0.5f, true)
                 {
-                    button.Width.Set(0f, 1f);
-                    button.TextOriginX = 0f;
-
-                    button.Height.Set(35f, 0f);
-                }
+                    Width = StyleDimension.FromPixelsAndPercent(0f, 1f),
+                    TextOriginX = 0f,
+                    
+                    Height = StyleDimension.FromPixelsAndPercent(35f, 0f),
+                    
+                    TextColor = Color.Transparent,
+                    Index = (byte)buttonList.Count
+                };
                 buttonList.Add(button);
             }
         }
@@ -244,6 +247,8 @@ file sealed class TextOption : UIText
     private static readonly Color working_color = (Color.White * 0.5f) with { A = byte.MaxValue };
 
     private object textCache;
+
+    public byte Index;
 
     public bool Working
     {
@@ -279,12 +284,18 @@ file sealed class TextOption : UIText
         SoundEngine.PlaySound(in SoundID.MenuTick);
     }
 
+    protected override void DrawSelf(SpriteBatch spriteBatch)
+    {
+        base.DrawSelf(spriteBatch);
+
+    }
+
     private float scaleInterpolator;
 
     public override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
-
+        
         scaleInterpolator += 0.15f * (IsMouseHovering && !Working).ToDirectionInt();
         scaleInterpolator = MathF.Saturate(scaleInterpolator);
 
@@ -304,6 +315,8 @@ file sealed class TextOption : UIText
         TextColor = IsMouseHovering
             ? hover_color
             : (default_color * ((float)Main.mouseTextColor / byte.MaxValue));
+
+        TextColor *= (PauseMenuReplacement.PauseFade - Index * 0.05f);
 
         // Refresh the color
         InternalSetText(_text, _textScale, _isLarge);

@@ -74,7 +74,7 @@ public static class PauseMenuReplacement
         return false;
     }
 
-    private static float pauseFade;
+    public static float PauseFade;
 
     [ScreenFilter(EffectPriority.VeryHigh)]
     private static bool ScreenOverlay(SpriteBatch sb, GraphicsDevice device, RenderTarget2D screen, RenderTarget2D screenSwap)
@@ -82,15 +82,15 @@ public static class PauseMenuReplacement
         var horizBlur = Assets.PauseMenu.ScreenBlur.CreateHorizontalShader();
         var vertBlur = Assets.PauseMenu.ScreenBlur.CreateVerticalShader();
 
-        pauseFade += Main.ingameOptionsWindow.ToDirectionInt() * 0.07f;
-        pauseFade = MathF.Saturate(pauseFade);
+        PauseFade += Main.ingameOptionsWindow.ToDirectionInt() * 0.07f;
+        PauseFade = MathF.Saturate(PauseFade);
 
-        if (pauseFade == 0f)
+        if (PauseFade == 0f)
         {
             return false;
         }
 
-        var blur = (1f - MathF.Pow(1f - pauseFade, 2f)) * 16f;
+        var blur = (1f - MathF.Pow(1f - PauseFade, 2f)) * 16f;
 
         var blurSize = new Vector2(blur) / new Vector2(Main.screenWidth, Main.screenHeight);
 
@@ -119,7 +119,7 @@ public static class PauseMenuReplacement
         sb.End();
         sb.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, null, null, null, Matrix.Identity);
         {
-            var color = Color.Black * (1f - MathF.Pow(1f - pauseFade, 2f));
+            var color = Color.Black * (1f - MathF.Pow(1f - PauseFade, 2f));
             color *= 0.35f;
 
             sb.Draw(TextureAssets.MagicPixel.Value, device.Viewport.Bounds, color);
