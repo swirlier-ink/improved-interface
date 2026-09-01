@@ -284,12 +284,6 @@ file sealed class TextOption : UIText
         SoundEngine.PlaySound(in SoundID.MenuTick);
     }
 
-    protected override void DrawSelf(SpriteBatch spriteBatch)
-    {
-        base.DrawSelf(spriteBatch);
-
-    }
-
     private float scaleInterpolator;
 
     public override void Update(GameTime gameTime)
