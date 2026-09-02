@@ -83,7 +83,7 @@ public static class PauseMenuReplacement
     [ModSystemHooks.UpdateUI]
     private static void UpdateUI(GameTime gameTime)
     {
-        var increment = Main.hideUI ? 0.2f : 0.07f;
+        var increment = Main.hideUI ? 0.333f : 0.07f;
 
         PauseFade += (Main.ingameOptionsWindow && !Main.hideUI).ToDirectionInt() * increment;
         PauseFade = MathF.Saturate(PauseFade);
@@ -93,12 +93,9 @@ public static class PauseMenuReplacement
             return;
         }
 
-        if (!Main.hideUI)
-        {
-            @interface.Update(gameTime);
-        }
+        @interface.Update(gameTime);
 
-        @interface.State?.IgnoresMouseInteraction = Main.ingameOptionsWindow && !Main.hideUI;
+        @interface.State?.IgnoresMouseInteraction = !Main.ingameOptionsWindow || Main.hideUI;
     }
 
     [GameInterfaceLayers.Replace(GameInterfaceLayers.IN_GAME_OPTIONS, InterfaceScaleType.UI, Name = $"{nameof(ImprovedInterface)}: Pause Menu")]
