@@ -74,7 +74,7 @@ public static class PauseMenuReplacement
         return false;
     }
 
-    public static float PauseFade;
+    public static float PauseFade { get; set; }
 
     [ScreenFilter(EffectPriority.VeryHigh)]
     private static bool ScreenOverlay(SpriteBatch sb, GraphicsDevice device, RenderTarget2D screen, RenderTarget2D screenSwap)
