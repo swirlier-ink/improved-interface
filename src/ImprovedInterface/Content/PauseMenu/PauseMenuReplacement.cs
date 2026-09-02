@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoMod.Cil;
 using System;
+using System.Diagnostics;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.GameInput;
@@ -22,6 +23,19 @@ public static class PauseMenuReplacement
     {
         IL_Main.DrawInterface_29_SettingsButton += DrawInterface_29_SettingsButton_ChangeText;
         IL_Main.DrawSettingButton += DrawSettingButton_Coloration;
+
+        On_Main.DoUpdate += DoUpdate_UpdateBlur;
+    }
+
+    [StackTraceHidden] // This mod should never come up in unrelated issues.
+    private static void DoUpdate_UpdateBlur(On_Main.orig_DoUpdate orig, Main self, ref GameTime gameTime)
+    {
+        var increment = (Main.hideUI || Main.gameMenu) ? 0.333f : 0.07f;
+
+        PauseFade += (Main.ingameOptionsWindow && !Main.hideUI && !Main.gameMenu).ToDirectionInt() * increment;
+        PauseFade = MathF.Saturate(PauseFade);
+
+        orig(self, ref gameTime);
     }
 
     private static void DrawSettingButton_Coloration(ILContext il)
@@ -83,11 +97,6 @@ public static class PauseMenuReplacement
     [ModSystemHooks.UpdateUI]
     private static void UpdateUI(GameTime gameTime)
     {
-        var increment = Main.hideUI ? 0.333f : 0.07f;
-
-        PauseFade += (Main.ingameOptionsWindow && !Main.hideUI).ToDirectionInt() * increment;
-        PauseFade = MathF.Saturate(PauseFade);
-
         if (!Main.ingameOptionsWindow && PauseFade <= 0f)
         {
             return;
