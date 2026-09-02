@@ -205,16 +205,18 @@ public sealed class PauseMenuState : UIState
                     continue;
                 }
 
-                var button = new TextOption(text, evt, 0.5f, true)
+                var button = new TextOption(text, evt, 0.5f, true);
                 {
-                    Width = StyleDimension.FromPixelsAndPercent(0f, 1f),
-                    TextOriginX = 0f,
-                    
-                    Height = StyleDimension.FromPixelsAndPercent(35f, 0f),
-                    
-                    TextColor = Color.Transparent,
-                    Index = (byte)buttonList.Count
-                };
+                    button.Width.Set(0f, 1f);
+                    button.TextOriginX = 0f;
+
+                    button.Height.Set(35f, 0f);
+
+                    button.TextColor = Color.Transparent;
+                    button.InternalSetText(button._text, button._textScale, button._isLarge);
+
+                    button.Index = (byte)buttonList.Count;
+                }
                 buttonList.Add(button);
             }
         }
@@ -336,7 +338,7 @@ file sealed class LogoElement : UIElement
             i => i.MatchLdsfld<Main>(nameof(Main.gameMenu))
         );
 
-        c.EmitStaticDelegateUnsafe(static () => Main.ingameOptionsWindow);
+        c.EmitStaticDelegateUnsafe(static () => Main.ingameOptionsWindow || PauseMenuReplacement.PauseFade > 0f);
 
         c.EmitOr();
     }

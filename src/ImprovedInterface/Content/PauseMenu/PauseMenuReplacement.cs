@@ -83,18 +83,28 @@ public static class PauseMenuReplacement
     [ModSystemHooks.UpdateUI]
     private static void UpdateUI(GameTime gameTime)
     {
-        if (!Main.ingameOptionsWindow)
+        var increment = Main.hideUI ? 0.2f : 0.07f;
+
+        PauseFade += (Main.ingameOptionsWindow && !Main.hideUI).ToDirectionInt() * increment;
+        PauseFade = MathF.Saturate(PauseFade);
+
+        if (!Main.ingameOptionsWindow && PauseFade <= 0f)
         {
             return;
         }
 
-        @interface.Update(gameTime);
+        if (!Main.hideUI)
+        {
+            @interface.Update(gameTime);
+        }
+
+        @interface.State?.IgnoresMouseInteraction = Main.ingameOptionsWindow && !Main.hideUI;
     }
 
     [GameInterfaceLayers.Replace(GameInterfaceLayers.IN_GAME_OPTIONS, InterfaceScaleType.UI, Name = $"{nameof(ImprovedInterface)}: Pause Menu")]
     private static bool DrawPauseMenu()
     {
-        if (!Main.ingameOptionsWindow)
+        if (!Main.ingameOptionsWindow && PauseFade <= 0f)
         {
             @interface.State = null;
             state = null;
@@ -144,18 +154,13 @@ public static class PauseMenuReplacement
     [ScreenFilter(EffectPriority.VeryHigh)]
     private static bool ScreenOverlay(SpriteBatch sb, GraphicsDevice device, RenderTarget2D screen, RenderTarget2D screenSwap)
     {
-        var horizBlur = Assets.PauseMenu.ScreenBlur.CreateHorizontalShader();
-        var vertBlur = Assets.PauseMenu.ScreenBlur.CreateVerticalShader();
-
-        var increment = Main.hideUI ? 0.2f : 0.07f;
-
-        PauseFade += (Main.ingameOptionsWindow && !Main.hideUI).ToDirectionInt() * increment;
-        PauseFade = MathF.Saturate(PauseFade);
-
-        if (PauseFade == 0f)
+        if (PauseFade <= 0f)
         {
             return false;
         }
+
+        var horizBlur = Assets.PauseMenu.ScreenBlur.CreateHorizontalShader();
+        var vertBlur = Assets.PauseMenu.ScreenBlur.CreateVerticalShader();
 
         var blur = (1f - MathF.Pow(1f - PauseFade, 2f)) * 16f;
 
