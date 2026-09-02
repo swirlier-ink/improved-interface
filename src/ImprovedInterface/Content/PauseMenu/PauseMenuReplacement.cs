@@ -1,11 +1,13 @@
-﻿using System;
-using ImprovedInterface.Common;
+﻿using ImprovedInterface.Common;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MonoMod.Cil;
+using System;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.GameInput;
 using Terraria.Graphics.Effects;
+using Terraria.Localization;
 using Terraria.UI;
 
 namespace ImprovedInterface.Content.PauseMenu;
@@ -14,6 +16,69 @@ public static class PauseMenuReplacement
 {
     private static readonly UserInterface @interface = new UserInterface();
     private static PauseMenuState? state;
+
+    [OnLoad]
+    private static void Load()
+    {
+        IL_Main.DrawInterface_29_SettingsButton += DrawInterface_29_SettingsButton_ChangeText;
+        IL_Main.DrawSettingButton += DrawSettingButton_Coloration;
+    }
+
+    private static void DrawSettingButton_Coloration(ILContext il)
+    {
+        var c = new ILCursor(il);
+
+        var mouseOverIndex = ParameterIndex.Invalid;
+
+        c.GotoNext(
+            i => i.MatchLdarg(out mouseOverIndex),
+            i => i.MatchLdindU1(),
+            i => i.MatchBrfalse(out _)
+        );
+
+        c.GotoNext(
+            MoveType.After,
+            i => i.MatchCall<Color>($"get_{nameof(Color.White)}")
+        );
+
+        c.EmitPop();
+
+        c.EmitLdarg(mouseOverIndex);
+        c.EmitLdindU1();
+
+        c.EmitStaticDelegateUnsafe(
+            static (bool mouseOver) =>
+            {
+                if (mouseOver)
+                {
+                    return Main.OurFavoriteColor;
+                }
+
+                return (Color.White * ((float)Main.mouseTextColor / byte.MaxValue)) with { A = byte.MaxValue };
+            }
+        );
+    }
+
+    private static void DrawInterface_29_SettingsButton_ChangeText(ILContext il)
+    {
+        var c = new ILCursor(il);
+
+        c.GotoNext(
+            MoveType.After,
+            i => i.MatchCallvirt<LocalizedText>($"get_{nameof(LocalizedText.Value)}")
+        );
+
+        c.EmitPop();
+
+        c.EmitStaticDelegateUnsafe(
+            static () =>
+            {
+                return Main.ingameOptionsWindow
+                    ? Mods.ImprovedInterface.PauseMenu.MenuButton.InMenu.GetTextValue()
+                    : Mods.ImprovedInterface.PauseMenu.MenuButton.InGame.GetTextValue();
+            }
+        );
+    }
 
     [ModSystemHooks.UpdateUI]
     private static void UpdateUI(GameTime gameTime)

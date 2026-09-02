@@ -1,4 +1,4 @@
-Paused: Paused
+﻿Paused: Paused
 Continue: Continue
 
 Save: {
@@ -12,3 +12,8 @@ Settings: Settings
 Achievements: Achievements
 SaveAndQuit: Save & Quit
 Disconnect: Disconnect
+
+MenuButton: {
+	InGame: Options
+	InMenu: Continue
+}
