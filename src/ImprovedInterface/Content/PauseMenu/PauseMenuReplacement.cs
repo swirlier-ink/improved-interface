@@ -109,6 +109,11 @@ public static class PauseMenuReplacement
             return true;
         }
 
+        if (!Main.ingameOptionsWindow)
+        {
+            return true;
+        }
+
         state ??= new PauseMenuState();
         @interface.State = state;
 
@@ -144,6 +149,19 @@ public static class PauseMenuReplacement
 
         // Return false as the pause menu stops all further layers from rendering
         return false;
+    }
+
+    [GameInterfaceLayers.Before(GameInterfaceLayers.CURSOR, InterfaceScaleType.UI, Name = $"{nameof(ImprovedInterface)}: Pause Menu Fadeout")]
+    private static void PauseMenuFadeout()
+    {
+        var sb = Main.spriteBatch;
+
+        if (Main.ingameOptionsWindow || PauseFade <= 0f)
+        {
+            return;
+        }
+
+        @interface.Draw(sb, Main.instance.gameTime);
     }
 
     public static float PauseFade { get; set; }
