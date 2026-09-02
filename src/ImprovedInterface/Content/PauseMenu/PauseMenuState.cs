@@ -126,14 +126,14 @@ public sealed class PauseMenuState : UIState
 
     public override void OnInitialize()
     {
-        textContainer = new UIElement()
+        textContainer = new UIElement();
         {
-            Left = StyleDimension.FromPixelsAndPercent(60f, 0f),
-            VAlign = 0.5f,
-            MinHeight = StyleDimension.FromPixelsAndPercent(255f, 0f),
-            Width = StyleDimension.FromPixelsAndPercent(0f, 0.1f),
-            MinWidth = StyleDimension.FromPixelsAndPercent(200f, 0f)
-        };
+            textContainer.Left.Set(60f, 0f);
+            textContainer.VAlign = 0.5f;
+            textContainer.MinHeight.Set(255f, 0f);
+            textContainer.Width.Set(0f, 0.1f);
+            textContainer.MinWidth.Set(200f, 0f);
+        }
         Append(textContainer);
 
         var header = new UIText(Mods.ImprovedInterface.PauseMenu.Paused.GetText(), 1f, true);
@@ -144,36 +144,37 @@ public sealed class PauseMenuState : UIState
         textContainer.Append(header);
 
         var topPadding = header.MinHeight.Pixels + 24;
-        var buttonList = new UIList()
-        {
-            Top = StyleDimension.FromPixelsAndPercent(topPadding, 0f),
-            Height = StyleDimension.FromPixelsAndPercent(-topPadding, 1f),
-            Width = StyleDimension.FromPixelsAndPercent(0f, 1f),
-            ListPadding = 2f,
 
-            OverflowHidden = false
-        };
+        var buttonList = new UIList();
+        {
+            buttonList.Top.Set(topPadding, 0f);
+            buttonList.Height.Set(-topPadding, 1f);
+            buttonList.Width.Set(0f, 1f);
+            buttonList.ListPadding = 2f;
+
+            buttonList.OverflowHidden = false;
+        }
         textContainer.Append(buttonList);
 
         AddButtons();
 
-        logoContainer = new UIElement()
+        logoContainer = new UIElement();
         {
-            Left = StyleDimension.FromPixelsAndPercent(0f, 0f),
-            Height = StyleDimension.FromPixelsAndPercent((Main.screenHeight - textContainer.Dimensions.Height) * 0.5f, 0f),
-            Width = StyleDimension.FromPixelsAndPercent(0f, 1f),
-            IgnoresMouseInteraction = true
-        };
+            logoContainer.Left.Set(0f, 0f);
+            logoContainer.Height.Set((Main.screenHeight - textContainer.Dimensions.Height) * 0.5f, 0f);
+            logoContainer.Width.Set(0f, 1f);
+
+            logoContainer.IgnoresMouseInteraction = true;
+        }
         Append(logoContainer);
 
-        var logo = new LogoElement()
+        var logo = new LogoElement();
         {
-            Width = StyleDimension.FromPixelsAndPercent(0f, 1f),
+            logo.Width.Set(0f, 1f);
+            logo.Height.Set(250f, 0f);
 
-            Height = StyleDimension.FromPixelsAndPercent(250f, 0f),
-
-            VAlign = 1f
-        };
+            logo.VAlign = 1f;
+        }
         logoContainer.Append(logo);
 
         return;
