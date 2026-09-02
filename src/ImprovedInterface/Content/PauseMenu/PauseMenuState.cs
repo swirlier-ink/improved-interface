@@ -2,14 +2,12 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoMod.Cil;
-using Steamworks;
 using System;
 using System.Threading;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
-using Terraria.Graphics.Capture;
 using Terraria.ID;
 using Terraria.IO;
 using Terraria.Localization;
@@ -17,8 +15,6 @@ using Terraria.ModLoader;
 using Terraria.ModLoader.Default;
 using Terraria.Social;
 using Terraria.UI;
-using static System.Net.Mime.MediaTypeNames;
-using static Terraria.GameContent.Animations.Actions.Sprites;
 
 namespace ImprovedInterface.Content.PauseMenu;
 
@@ -311,7 +307,7 @@ file sealed class TextOption : UIText
             ? hover_color
             : (default_color * ((float)Main.mouseTextColor / byte.MaxValue));
 
-        TextColor *= (PauseMenuReplacement.PauseFade - Index * 0.05f);
+        TextColor *= PauseMenuReplacement.PauseFade - (Index * 0.05f);
 
         // Refresh the color
         InternalSetText(_text, _textScale, _isLarge);
@@ -487,7 +483,8 @@ file sealed class LogoElement : UIElement
             float maxRotation = 0.08f,
             float scaleSpeed = 0.000009f,
             float minScale = 1f,
-            float maxScale = 1.35f)
+            float maxScale = 1.35f
+        )
         {
             // Ehh, cheap hack
             if (rotationThresholdDirection)
