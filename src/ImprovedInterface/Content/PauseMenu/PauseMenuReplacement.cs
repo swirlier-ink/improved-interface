@@ -82,7 +82,9 @@ public static class PauseMenuReplacement
         var horizBlur = Assets.PauseMenu.ScreenBlur.CreateHorizontalShader();
         var vertBlur = Assets.PauseMenu.ScreenBlur.CreateVerticalShader();
 
-        PauseFade += (Main.ingameOptionsWindow && !Main.hideUI).ToDirectionInt() * 0.07f;
+        var increment = Main.hideUI ? 0.2f : 0.07f;
+
+        PauseFade += (Main.ingameOptionsWindow && !Main.hideUI).ToDirectionInt() * increment;
         PauseFade = MathF.Saturate(PauseFade);
 
         if (PauseFade == 0f)
