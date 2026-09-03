@@ -43,6 +43,7 @@ public sealed class PauseMenuState : UIState
 
     private static void ClickContinue(UIMouseEvent evt, UIElement listeningElement)
     {
+        PauseMenuAchievements.AchievementsOpen = false;
         Main.ingameOptionsWindow = false;
         SoundEngine.PlaySound(in SoundID.MenuClose);
 
@@ -94,11 +95,15 @@ public sealed class PauseMenuState : UIState
     private static void ClickSettings(UIMouseEvent evt, UIElement listeningElement)
     {
         // TODO
+        PauseMenuAchievements.AchievementsOpen = false;
     }
 
     private static void ClickAchievements(UIMouseEvent evt, UIElement listeningElement)
     {
         // TODO
+        PauseMenuAchievements.AchievementsOpen = !PauseMenuAchievements.AchievementsOpen;
+        
+        SoundEngine.PlaySound(in SoundID.MenuOpen);
     }
 
     private static void ClickInvitePlayers(UIMouseEvent evt, UIElement listeningElement)
@@ -110,6 +115,8 @@ public sealed class PauseMenuState : UIState
 
     private static void ClickQuit(UIMouseEvent evt, UIElement listeningElement)
     {
+        PauseMenuAchievements.AchievementsOpen = false;
+        PauseMenuAchievements.AchievementsFade = 0;
         Main.menuMode = MenuID.Status;
         Main.gameMenu = true;
         WorldGen.SaveAndQuit();
@@ -119,6 +126,8 @@ public sealed class PauseMenuState : UIState
 
     private UIElement? textContainer;
     private UIElement? logoContainer;
+    
+    private PauseMenuAchievements? achievementsContainer;
 
     public override void OnInitialize()
     {
@@ -172,6 +181,18 @@ public sealed class PauseMenuState : UIState
             logo.VAlign = 1f;
         }
         logoContainer.Append(logo);
+
+        achievementsContainer = new();
+        {
+            achievementsContainer.Left = textContainer.Right + (140, 0);
+            
+            achievementsContainer.Width.Set(0, 1);
+            achievementsContainer.Width.Sub(achievementsContainer.Left + (60, 0.15f));
+            
+            achievementsContainer.Top.Set(30, 0.05f);
+            achievementsContainer.Height.Set(-60, 0.9f);
+        }
+        Append(achievementsContainer);
 
         return;
 
