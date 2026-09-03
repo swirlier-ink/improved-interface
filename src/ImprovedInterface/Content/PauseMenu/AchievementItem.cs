@@ -10,9 +10,9 @@ using Terraria.ModLoader;
 namespace ImprovedInterface.Content.PauseMenu;
 
 /// <summary>
-/// Simplified recreation of <see cref="UIAchievementListItem"/>
+/// Simplified recreation of <see cref="UIAchievementListItem"/> without visuals
 /// </summary>
-public class AchievementItem : UIElement
+public abstract class AchievementItem : UIElement
 {
     // Frame data
     private const int icon_size = 64, 
@@ -24,6 +24,9 @@ public class AchievementItem : UIElement
 
     public Achievement Achievement { get; }
     public bool Locked => !Achievement.IsCompleted;
+    public CalculatedStyle BorderDimensions => border.GetInnerDimensions();
+
+    public UIElement Container;
     
     private UIImageFramed icon;
     private UIImage border;
@@ -42,6 +45,13 @@ public class AchievementItem : UIElement
         PaddingTop = 8f;
         PaddingLeft = 9f;
 
+        Container = new UIElement();
+        {
+            Container.Width.Set(0, 1);
+            Container.Height.Set(0, 1);
+        }
+        Append(Container);
+
         var iconIndex = Main.Achievements.GetIconIndex(achievement.Name);
         var moddedFrame = new Rectangle(0, iconIndex * padded_icon_size, icon_size, icon_size);
         var vanillaFrame = new Rectangle(iconIndex % icons_per_row * padded_icon_size, iconIndex / icons_per_row * padded_icon_size, icon_size, icon_size);
@@ -56,19 +66,21 @@ public class AchievementItem : UIElement
             icon.Left.Set(6, 0);
             icon.Top.Set(12, 0);
         }
-        Append(icon);
+        Container.Append(icon);
 
         border = new(Main.Assets.Request<Texture2D>("Images/UI/Achievement_Borders"));
         {
             border.Left = icon.Left - (4, 0);
             border.Top = icon.Top - (4, 0);
+            border.Color = Color.Black;
         }
-        Append(border);
+        Container.Append(border);
     }
 
-    protected override void DrawSelf(SpriteBatch spriteBatch)
+    public override void Draw(SpriteBatch spriteBatch)
     {
-        base.DrawSelf(spriteBatch);
+        if (PauseMenuAchievements.AchievementsFade > 0)
+            base.Draw(spriteBatch);
         
         UpdateIconFrame();
     }
