@@ -42,5 +42,15 @@ public static class ElementExtensions
         public Rectangle ParentRelativeDimensions => element.Parent is not { } parent
             ? element.Dimensions
             : element.GetDimensionsBasedOnParentDimensions(parent.GetInnerDimensions()).ToRectangle();
+
+        /// <summary>
+        /// The <paramref name="element"/>'s top, height, and vertical margin values combined.
+        /// </summary>
+        public StyleDimension Bottom => element.Top + element.Height + (element.MarginTop + element.MarginBottom, 0);
+        
+        /// <summary>
+        /// The <paramref name="element"/>'s left, width, and horizontal margin values combined.
+        /// </summary>
+        public StyleDimension Right => element.Left + element.Width + (element.MarginLeft + element.MarginRight, 0);
     }
 }
