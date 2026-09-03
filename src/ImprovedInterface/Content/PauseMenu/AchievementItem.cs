@@ -27,17 +27,17 @@ public abstract class AchievementItem : UIElement
     public CalculatedStyle BorderDimensions => border.GetInnerDimensions();
 
     public UIElement Container;
+    public bool Modded;
     
     private UIImageFramed icon;
     private UIImage border;
     private Rectangle iconFrame;
     private readonly Rectangle iconFrameLocked, iconFrameUnlocked;
-    private bool modded;
 
     public AchievementItem(Achievement achievement)
     {
         ModAchievement modAchievement = achievement.ModAchievement;
-        modded = modAchievement != null;
+        Modded = modAchievement != null;
         Achievement = achievement;
         
         Height.Set(height, 0);
@@ -55,8 +55,8 @@ public abstract class AchievementItem : UIElement
         var iconIndex = Main.Achievements.GetIconIndex(achievement.Name);
         var moddedFrame = new Rectangle(0, iconIndex * padded_icon_size, icon_size, icon_size);
         var vanillaFrame = new Rectangle(iconIndex % icons_per_row * padded_icon_size, iconIndex / icons_per_row * padded_icon_size, icon_size, icon_size);
-        var lockedFrameX = modded ? padded_icon_size : (vanillaFrame.X + locked_icon_offset);
-        iconFrameUnlocked = modded ? moddedFrame : vanillaFrame;
+        var lockedFrameX = Modded ? padded_icon_size : (vanillaFrame.X + locked_icon_offset);
+        iconFrameUnlocked = Modded ? moddedFrame : vanillaFrame;
         iconFrameLocked = iconFrameUnlocked with { X = lockedFrameX };
         UpdateIconFrame();
 
