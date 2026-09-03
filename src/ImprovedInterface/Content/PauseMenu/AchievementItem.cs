@@ -24,15 +24,14 @@ public abstract class AchievementItem : UIElement
 
     public Achievement Achievement { get; }
     public bool Locked => !Achievement.IsCompleted;
-    public CalculatedStyle BorderDimensions => border.GetInnerDimensions();
+    public CalculatedStyle BorderDimensions => Border.GetInnerDimensions();
 
     public UIElement Container;
+    public UIImageFramed Icon;
+    public UIImage Border;
+    public Rectangle IconFrame;
+    public readonly Rectangle IconFrameLocked, IconFrameUnlocked;
     public bool Modded;
-    
-    private UIImageFramed icon;
-    private UIImage border;
-    private Rectangle iconFrame;
-    private readonly Rectangle iconFrameLocked, iconFrameUnlocked;
 
     public AchievementItem(Achievement achievement)
     {
@@ -56,42 +55,45 @@ public abstract class AchievementItem : UIElement
         var moddedFrame = new Rectangle(0, iconIndex * padded_icon_size, icon_size, icon_size);
         var vanillaFrame = new Rectangle(iconIndex % icons_per_row * padded_icon_size, iconIndex / icons_per_row * padded_icon_size, icon_size, icon_size);
         var lockedFrameX = Modded ? padded_icon_size : (vanillaFrame.X + locked_icon_offset);
-        iconFrameUnlocked = Modded ? moddedFrame : vanillaFrame;
-        iconFrameLocked = iconFrameUnlocked with { X = lockedFrameX };
+        IconFrameUnlocked = Modded ? moddedFrame : vanillaFrame;
+        IconFrameLocked = IconFrameUnlocked with { X = lockedFrameX };
         UpdateIconFrame();
 
         var iconTexture = modAchievement?.Texture ?? Main.Assets.Request<Texture2D>("Images/UI/Achievements");
-        icon = new(iconTexture, iconFrame);
+        Icon = new(iconTexture, IconFrame);
         {
-            icon.Left.Set(6, 0);
-            icon.Top.Set(12, 0);
+            Icon.Left.Set(6, 0);
+            Icon.Top.Set(12, 0);
         }
-        Container.Append(icon);
+        Container.Append(Icon);
 
-        border = new(Main.Assets.Request<Texture2D>("Images/UI/Achievement_Borders"));
+        Border = new(Main.Assets.Request<Texture2D>("Images/UI/Achievement_Borders"));
         {
-            border.Left = icon.Left - (4, 0);
-            border.Top = icon.Top - (4, 0);
-            border.Color = Color.Black;
+            Border.Left = Icon.Left - (4, 0);
+            Border.Top = Icon.Top - (4, 0);
+            Border.Color = Color.Black;
         }
-        Container.Append(border);
+        Container.Append(Border);
     }
 
     public override void Draw(SpriteBatch spriteBatch)
     {
         if (PauseMenuAchievements.AchievementsFade > 0)
             base.Draw(spriteBatch);
+
+        Icon.Color = Color.White * PauseMenuAchievements.AchievementsFade;
+        Border.Color = Color.Black * PauseMenuAchievements.AchievementsFade;
         
         UpdateIconFrame();
     }
 
     private void UpdateIconFrame()
     {
-        iconFrame = Locked ? iconFrameLocked : iconFrameUnlocked;
-        icon?.SetFrame(iconFrame);
+        IconFrame = Locked ? IconFrameLocked : IconFrameUnlocked;
+        Icon?.SetFrame(IconFrame);
     }
 
-    private (decimal, decimal) GetTrackerValues()
+    public (decimal, decimal) GetTrackerValues()
     {
         if (!Achievement.HasTracker)
             return (0m, 0m);
