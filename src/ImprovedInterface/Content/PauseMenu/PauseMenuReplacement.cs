@@ -97,9 +97,12 @@ public static class PauseMenuReplacement
     [ModSystemHooks.UpdateUI]
     private static void UpdateUI(GameTime gameTime)
     {
-        if (!Main.ingameOptionsWindow && PauseFade <= 0f)
+        if (!Main.ingameOptionsWindow)
         {
-            return;
+            PauseMenuAchievements.AchievementsOpen = false;
+            
+            if (PauseFade <= 0f)
+                return;
         }
 
         @interface.Update(gameTime);
