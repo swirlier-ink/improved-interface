@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoMod.Cil;
 using System;
+using System.Reflection;
 using System.Threading;
 using Terraria;
 using Terraria.Audio;
@@ -366,6 +367,18 @@ file sealed class LogoElement : UIElement
         UpdateLogo();
     }
 
+    private bool modMenuImplementsPreDraw;
+
+    public override void OnActivate()
+    {
+        var info = MenuLoader.CurrentMenu.GetType().GetMethod(
+            nameof(ModMenu.PreDrawLogo),
+            BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance
+        );
+
+        modMenuImplementsPreDraw = info is not null;
+    }
+
     protected override void DrawSelf(SpriteBatch sb)
     {
         var menu = MenuLoader.CurrentMenu;
@@ -385,15 +398,18 @@ file sealed class LogoElement : UIElement
         var rotation = Main.instance.logoRotation;
         var scale = Main.instance.logoScale;
 
-        if (menu
-         is MenuOldVanilla
-         or MenuBiggerAndBoulder
-         or MenuJourneysEnd
-         or MenutML)
+        if (!modMenuImplementsPreDraw
+         || (menu
+          is MenuOldVanilla
+          or MenuBiggerAndBoulder
+          or MenuJourneysEnd
+          or MenutML))
         {
+            color *= PauseMenuReplacement.PauseFade;
+
             if (menu.PreDrawLogo(sb, ref position, ref rotation, ref scale, ref color))
             {
-                sb.Draw(logo, position, null, color * PauseMenuReplacement.PauseFade, rotation, logoOrigin, scale, SpriteEffects.None, 0f);
+                sb.Draw(logo, position, null, color, rotation, logoOrigin, scale, SpriteEffects.None, 0f);
             }
             menu.PostDrawLogo(sb, position, rotation, scale, color);
         }
@@ -477,8 +493,8 @@ file sealed class LogoElement : UIElement
 
             logoOrigin = logoDay.Size() * 0.5f;
 
-            var colorDay = color * ((float)Main.LogoA / byte.MaxValue) * PauseMenuReplacement.PauseFade;
-            var colorNight = color * ((float)Main.LogoB / byte.MaxValue) * PauseMenuReplacement.PauseFade;
+            var colorDay = color * ((float)Main.LogoA / byte.MaxValue);
+            var colorNight = color * ((float)Main.LogoB / byte.MaxValue);
 
             position = this.Dimensions.Left();
             position.X += logoOrigin.X * 1.35f;
