@@ -4,7 +4,7 @@ sampler2D LogoTexture : register(s0);
 
 float4 Source;
 
-float4 LogoFadeShaderFragment(float2 svPos : SV_POSITION0, float2 uv : TEXCOORD0) : COLOR0
+float4 LogoFadeShaderFragment(float2 svPos : SV_POSITION0, float2 uv : TEXCOORD0, float4 baseColor : COLOR0) : COLOR0
 {
     float4 color = tex2D(LogoTexture, uv);
     
@@ -17,7 +17,7 @@ float4 LogoFadeShaderFragment(float2 svPos : SV_POSITION0, float2 uv : TEXCOORD0
     
     fade *= 1 - pow((abs(fadeUv.y - 0.5) * 2), 6.5);
     
-    return color * fade;
+    return color * baseColor * fade;
 }
 
 BEGIN_TECHNIQUE(Technique1)

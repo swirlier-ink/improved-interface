@@ -422,6 +422,10 @@ file sealed class LogoElement : UIElement
             using (sb.Scope())
             using (lease.Scope(clearColor: Color.Transparent))
             {
+                var prior = Main.Rasterizer;
+
+                Main.Rasterizer = RasterizerState.CullCounterClockwise;
+
                 sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, Main.Rasterizer, null, Main.UIScaleMatrix);
                 {
                     if (menu.PreDrawLogo(sb, ref position, ref rotation, ref scale, ref color))
@@ -432,6 +436,8 @@ file sealed class LogoElement : UIElement
                     menu.PostDrawLogo(sb, position, rotation, scale, color);
                 }
                 sb.End();
+
+                Main.Rasterizer = prior;
             }
 
             sb.End(out var ss);
