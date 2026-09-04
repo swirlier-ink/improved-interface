@@ -432,7 +432,6 @@ file sealed class LogoElement : UIElement
                     {
                         sb.Draw(logo, position, null, color, rotation, logoOrigin, scale, SpriteEffects.None, 0f);
                     }
-
                     menu.PostDrawLogo(sb, position, rotation, scale, color);
                 }
                 sb.End();
