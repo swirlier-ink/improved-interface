@@ -440,7 +440,7 @@ file sealed class LogoElement : UIElement
                 var effect = Assets.PauseMenu.LogoFade.CreateLogoFadeShader();
 
                 var dest = this.Dimensions;
-                dest.Width = (int)MathF.Max((logo.Width * 1.35f) + 190, 250f);
+                dest.Width = (int)MathF.Max((logo.Width * 1.35f) + 140, 250f);
 
                 var source = Utils.CenteredRectangle(position, dest.Size());
                 source.X += 65;
@@ -449,7 +449,7 @@ file sealed class LogoElement : UIElement
 
                 effect.Apply();
 
-                sb.Draw(lease.Target, dest, source, Color.White);
+                sb.Draw(lease.Target, dest, source, Color.White * PauseMenuReplacement.PauseFade);
             }
             sb.Restart(in ss);
         }

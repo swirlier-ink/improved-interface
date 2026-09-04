@@ -13,9 +13,9 @@ float4 LogoFadeShaderFragment(float2 svPos : SV_POSITION0, float2 uv : TEXCOORD0
     
     float fade = 1 - fadeUv.x;
     
-    fade = 1 - pow(1 - fade, 5);
+    fade = 1 - pow(1 - fade, 7);
     
-    fade *= 1 - pow((abs(fadeUv.y - 0.5) * 2), 10);
+    fade *= 1 - pow((abs(fadeUv.y - 0.5) * 2), 6.5);
     
     return color * fade;
 }
