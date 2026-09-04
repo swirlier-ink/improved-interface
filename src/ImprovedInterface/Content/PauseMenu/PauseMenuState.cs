@@ -438,9 +438,11 @@ file sealed class LogoElement : UIElement
             using (sb.Scope())
             using (lease.Scope(clearColor: Color.Transparent))
             {
-                var prior = Main.Rasterizer;
-
+                var priorRasterizer = Main.Rasterizer;
                 Main.Rasterizer = RasterizerState.CullCounterClockwise;
+
+                var priorScale = Main.UIScale;
+                Main.UIScale = 1f;
 
                 sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, Main.Rasterizer, null, Main.UIScaleMatrix);
                 {
@@ -452,7 +454,8 @@ file sealed class LogoElement : UIElement
                 }
                 sb.End();
 
-                Main.Rasterizer = prior;
+                Main.UIScale = priorScale;
+                Main.Rasterizer = priorRasterizer;
             }
 
             sb.End(out var ss);
@@ -463,10 +466,20 @@ file sealed class LogoElement : UIElement
                 var dest = this.Dimensions;
                 dest.Width = (int)MathF.Max((logo.Width * 1.35f) + 140, 250f);
 
+                dest.Height = (int)MathF.Min(position.Y * 2f, dest.Height);
+
                 var source = Utils.CenteredRectangle(position, dest.Size());
                 source.X += 65;
 
-                effect.Parameters.Source = new Vector4(dest.Size(), dest.X, dest.Y);
+                var topLeft = dest.TopLeft();
+                topLeft = Vector2.Transform(topLeft, ss.TransformMatrix);
+
+                var size = dest.BottomRight();
+                size = Vector2.Transform(size, ss.TransformMatrix) - topLeft;
+
+                var effectSource = new Vector4(size, topLeft.X, topLeft.Y);
+
+                effect.Parameters.Source = effectSource;
 
                 effect.Apply();
 
