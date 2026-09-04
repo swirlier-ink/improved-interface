@@ -144,7 +144,7 @@ public sealed class PauseMenuState : UIState
         var header = new UIText(Mods.ImprovedInterface.PauseMenu.Paused.GetText(), 1f, true);
         {
             header.TextColor = Color.Transparent;
-            header.OnUpdate += OnUpdate_Header;
+            header.OnUpdateExt += OnUpdate_Header;
         }
         textContainer.Append(header);
 
@@ -196,13 +196,8 @@ public sealed class PauseMenuState : UIState
 
         return;
 
-        static void OnUpdate_Header(UIElement affectedElement)
+        static void OnUpdate_Header(UIText text)
         {
-            if (affectedElement is not UIText text)
-            {
-                return;
-            }
-
             text.TextColor = Color.White * ((float)Main.mouseTextColor / byte.MaxValue) * PauseMenuReplacement.PauseFade;
 
             // Refresh the color
