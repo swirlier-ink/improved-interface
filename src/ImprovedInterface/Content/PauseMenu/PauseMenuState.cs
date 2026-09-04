@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoMod.Cil;
 using System;
+using System.Reflection;
 using System.Threading;
 using Terraria;
 using Terraria.Audio;
@@ -366,6 +367,18 @@ file sealed class LogoElement : UIElement
         UpdateLogo();
     }
 
+    private bool modMenuImplementsPreDraw;
+
+    public override void OnActivate()
+    {
+        var info = MenuLoader.CurrentMenu.GetType().GetMethod(
+            nameof(ModMenu.PreDrawLogo),
+            BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance
+        );
+
+        modMenuImplementsPreDraw = info is not null;
+    }
+
     protected override void DrawSelf(SpriteBatch sb)
     {
         var menu = MenuLoader.CurrentMenu;
@@ -385,14 +398,27 @@ file sealed class LogoElement : UIElement
         var rotation = Main.instance.logoRotation;
         var scale = Main.instance.logoScale;
 
-        // TODO: The Zoey solution.
-        if (menu.PreDrawLogo(sb, ref position, ref rotation, ref scale, ref color))
+        if (!modMenuImplementsPreDraw
+         || (menu
+          is MenuOldVanilla
+          or MenuBiggerAndBoulder
+          or MenuJourneysEnd
+          or MenutML))
         {
-            sb.Draw(logo, position, null, color, rotation, logoOrigin, scale, SpriteEffects.None, 0f);
-        }
-        menu.PostDrawLogo(sb, position, rotation, scale, color);
+            color *= PauseMenuReplacement.PauseFade;
 
-        if (MenuLoader.currentMenu
+            if (menu.PreDrawLogo(sb, ref position, ref rotation, ref scale, ref color))
+            {
+                sb.Draw(logo, position, null, color, rotation, logoOrigin, scale, SpriteEffects.None, 0f);
+            }
+            menu.PostDrawLogo(sb, position, rotation, scale, color);
+        }
+        else
+        {
+            DrawModdedLogo();
+        }
+
+        if (menu
          is MenuOldVanilla 
          or MenuBiggerAndBoulder
          or MenuJourneysEnd)
@@ -402,16 +428,63 @@ file sealed class LogoElement : UIElement
 
         return;
 
+        void DrawModdedLogo()
+        {
+            // Should use the center alignment as modders cannot be trusted evidently.
+            position = new Vector2(Main.screenWidth * 0.5f, 100f);
+
+            using var lease = ScreenspaceTargetProvider.Shared.Create(Main.graphics.GraphicsDevice);
+
+            using (sb.Scope())
+            using (lease.Scope(clearColor: Color.Transparent))
+            {
+                var prior = Main.Rasterizer;
+
+                Main.Rasterizer = RasterizerState.CullCounterClockwise;
+
+                sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, Main.Rasterizer, null, Main.UIScaleMatrix);
+                {
+                    if (menu.PreDrawLogo(sb, ref position, ref rotation, ref scale, ref color))
+                    {
+                        sb.Draw(logo, position, null, color, rotation, logoOrigin, scale, SpriteEffects.None, 0f);
+                    }
+                    menu.PostDrawLogo(sb, position, rotation, scale, color);
+                }
+                sb.End();
+
+                Main.Rasterizer = prior;
+            }
+
+            sb.End(out var ss);
+            sb.Begin(ss with { SortMode = SpriteSortMode.Immediate});
+            {
+                var effect = Assets.PauseMenu.LogoFade.CreateLogoFadeShader();
+
+                var dest = this.Dimensions;
+                dest.Width = (int)MathF.Max((logo.Width * 1.35f) + 140, 250f);
+
+                var source = Utils.CenteredRectangle(position, dest.Size());
+                source.X += 65;
+
+                effect.Parameters.Source = new Vector4(dest.Size(), dest.X, dest.Y);
+
+                effect.Apply();
+
+                sb.Draw(lease.Target, dest, source, Color.White * PauseMenuReplacement.PauseFade);
+            }
+            sb.Restart(in ss);
+        }
+
         void DrawVanillaLogo()
         {
-            var logoDay = MenuLoader.currentMenu switch
+            var logoDay = menu switch
             {
                 MenuOldVanilla => TextureAssets.Logo3.Value,
                 MenuBiggerAndBoulder => TextureAssets.Logo5.Value,
                 _ => TextureAssets.Logo.Value,
             };
 
-            var logoNight = MenuLoader.currentMenu switch
+            var logoNight = menu switch
             {
                 MenuOldVanilla => TextureAssets.Logo4.Value,
                 MenuBiggerAndBoulder => TextureAssets.Logo6.Value,
