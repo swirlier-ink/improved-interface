@@ -466,6 +466,8 @@ file sealed class LogoElement : UIElement
                 var dest = this.Dimensions;
                 dest.Width = (int)MathF.Max((logo.Width * 1.35f) + 140, 250f);
 
+                dest.Height = (int)MathF.Min(position.Y * 2f, dest.Height);
+
                 var source = Utils.CenteredRectangle(position, dest.Size());
                 source.X += 65;
 
