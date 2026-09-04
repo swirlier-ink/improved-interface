@@ -6,8 +6,9 @@ using Terraria.Achievements;
 using Terraria.UI;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ModLoader;
+using ImprovedInterface.Content.PauseMenu;
 
-namespace ImprovedInterface.Content.PauseMenu;
+namespace ImprovedInterface.Content;
 
 /// <summary>
 /// Simplified recreation of <see cref="UIAchievementListItem"/> without visuals
