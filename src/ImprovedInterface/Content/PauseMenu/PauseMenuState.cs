@@ -393,7 +393,7 @@ file sealed class LogoElement : UIElement
         {
             if (menu.PreDrawLogo(sb, ref position, ref rotation, ref scale, ref color))
             {
-                sb.Draw(logo, position, null, color, rotation, logoOrigin, scale, SpriteEffects.None, 0f);
+                sb.Draw(logo, position, null, color * PauseMenuReplacement.PauseFade, rotation, logoOrigin, scale, SpriteEffects.None, 0f);
             }
             menu.PostDrawLogo(sb, position, rotation, scale, color);
         }
@@ -477,8 +477,8 @@ file sealed class LogoElement : UIElement
 
             logoOrigin = logoDay.Size() * 0.5f;
 
-            var colorDay = color * ((float)Main.LogoA / byte.MaxValue);
-            var colorNight = color * ((float)Main.LogoB / byte.MaxValue);
+            var colorDay = color * ((float)Main.LogoA / byte.MaxValue) * PauseMenuReplacement.PauseFade;
+            var colorNight = color * ((float)Main.LogoB / byte.MaxValue) * PauseMenuReplacement.PauseFade;
 
             position = this.Dimensions.Left();
             position.X += logoOrigin.X * 1.35f;
