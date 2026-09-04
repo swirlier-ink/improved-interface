@@ -185,7 +185,7 @@ public sealed class PauseMenuState : UIState
 
         achievementsContainer = new();
         {
-            achievementsContainer.Left = textContainer.Right + (140, 0);
+            achievementsContainer.Left = textContainer.Right + (40, 0.05f);
             
             achievementsContainer.Width.Set(0, 1);
             achievementsContainer.Width.Sub(achievementsContainer.Left + (60, 0.15f));

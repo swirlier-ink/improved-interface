@@ -1,4 +1,5 @@
 using System;
+using ImprovedInterface.Common;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
@@ -6,7 +7,9 @@ using Terraria.Achievements;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
 using Terraria.Localization;
+using Terraria.UI;
 using Terraria.UI.Chat;
+using Terraria.Utilities;
 
 namespace ImprovedInterface.Content.PauseMenu;
 
@@ -20,13 +23,15 @@ public class PauseMenuAchievementItem(Achievement achievement) : AchievementItem
         var iconTexture = Achievement.ModAchievement?.Texture ?? Main.Assets.Request<Texture2D>("Images/UI/Achievements");
         progressIcon = new UIImageFramed(iconTexture, IconFrameUnlocked with { Height = 0 });
         Icon.Append(progressIcon);
+
+        MarginTop = 6f;
     }
 
     public override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
         
-        Container.Left.Percent = MathHelper.Lerp(Container.Left.Percent, IsMouseHovering ? 0.025f : 0, 0.1f);
+        Container.Left.Pixels = MathHelper.Lerp(Container.Left.Pixels, IsMouseHovering && PauseMenuAchievements.AchievementsFade >= 1f ? 32 : 0, 0.2f);
         
         var trackerValues = GetTrackerValues();
         if (trackerValues.Item2 > 0 && Locked)
@@ -41,29 +46,48 @@ public class PauseMenuAchievementItem(Achievement achievement) : AchievementItem
         {
             progressIcon.Color = Color.Transparent;
         }
-
-        MarginTop = MathHelper.SmoothStep(0, 16f, PauseMenuAchievements.AchievementsFade * 0.5f);
-        Recalculate();
     }
 
     protected override void DrawSelf(SpriteBatch spriteBatch)
     {
-        base.DrawSelf(spriteBatch);
-
-        var font = FontAssets.ItemStack.Value;
-
+        var mouse = UserInterface.ActiveInstance.MousePosition;
+        
+        var icon_small = Main.Assets.Request<Texture2D>("Images/UI/Bestiary/Icon_Tags_Shadow").Value;
+        var categories = Assets.Achievements.Categories.Asset.Value;
+        
+        var unaffectedX = GetInnerDimensions().X + BorderDimensions.Width + 9f;
         var containerDimensions = Container.GetInnerDimensions();
         var borderRight = BorderDimensions.X + BorderDimensions.Width;
         var basePosition = new Vector2(borderRight + 7f, containerDimensions.Y);
+        var opacity = PauseMenuAchievements.AchievementsFade;
+        
+        var smallIconPosition = new Vector2(GetInnerDimensions().X + 20, basePosition.Y + 28);
+        var smallIconBounds = new Rectangle((int)smallIconPosition.X - 16, (int)smallIconPosition.Y - 16, 32, 32);
+        Main.spriteBatch.Draw(icon_small, smallIconPosition, new Rectangle(0, 0, 32, 32), Color.White * (int)opacity, 0, new Vector2(16f), 1f, SpriteEffects.None, 0);
+
+        var categoryPosition = new Vector2(GetInnerDimensions().X + 20, basePosition.Y + BorderDimensions.Height - 14);
+        var categoryBounds = new Rectangle((int)categoryPosition.X - 16, (int)categoryPosition.Y - 16, 32, 32);
+        Main.spriteBatch.Draw(categories, categoryPosition, categories.Frame(4, 1, (int)Achievement._category), Color.White * (int)opacity, 0, new Vector2(16f), 1f, SpriteEffects.None, 0);
+
+        if (smallIconBounds.Contains(mouse.ToPoint()) || categoryBounds.Contains(mouse.ToPoint()))
+        {
+            var text = smallIconBounds.Contains(mouse.ToPoint()) ? "Terraria" : Achievement.Category.GetCategoryText();
+            Main.instance.MouseText(text);
+        }
+        
+        base.DrawSelf(spriteBatch);
+        
+        var font = FontAssets.ItemStack.Value;
         
         var name = Achievement.FriendlyName;
         var desc = Achievement.Description;
 
+        var nameScale = new Vector2(1f);
+        var descScale = new Vector2(0.9f);
+        
         if (Locked && Achievement.Hidden)
             name = desc = new LocalizedText(null, "???");
         
-        var nameScale = new Vector2(1f);
-        var descScale = new Vector2(0.9f);
         var maxWidth = containerDimensions.Width - BorderDimensions.Width - 11f;
         var maxDescHeight = 58f;
 
@@ -73,11 +97,10 @@ public class PauseMenuAchievementItem(Achievement achievement) : AchievementItem
         if (descSize.Y > maxDescHeight)
             descScale *= maxDescHeight / descSize.Y;
 
-        var opacity = PauseMenuAchievements.AchievementsFade;
         var color = (Locked ? Color.Silver : Color.Gold);
         color = Color.Lerp(color, Color.White, base.IsMouseHovering ? 0.5f : 0f);
 
-        var position = basePosition - new Vector2(BorderDimensions.Width + 8, 16); 
+        var position = new Vector2(unaffectedX, basePosition.Y) - new Vector2(BorderDimensions.Width + 8, 16); 
         ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, name.Value, position, color * opacity, 0f, Vector2.Zero, nameScale, maxWidth);
 
         position = basePosition + new Vector2(6, 16);
@@ -92,7 +115,7 @@ public class PauseMenuAchievementItem(Achievement achievement) : AchievementItem
             
             var text = "(" + (int)trackerValues.Item1 + "/" + (int)trackerValues.Item2 + ")";
             
-            position = basePosition - new Vector2(BorderDimensions.Width, 16) + ChatManager.GetStringSize(font, name.Value, nameScale, maxWidth) * new Vector2(1, 0);
+            position = new Vector2(unaffectedX, basePosition.Y) - new Vector2(BorderDimensions.Width, 16) + ChatManager.GetStringSize(font, name.Value, nameScale, maxWidth) * new Vector2(1, 0);
             color = (Locked ? Color.DarkGray : Color.Silver);
             
             ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, text, position, color * opacity, 0f, Vector2.Zero, nameScale, maxWidth);

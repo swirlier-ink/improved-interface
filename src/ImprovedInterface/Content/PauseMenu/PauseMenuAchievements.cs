@@ -1,5 +1,6 @@
 using System;
 using ImprovedInterface.Common;
+using ImprovedInterface.Common.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
@@ -13,7 +14,7 @@ using Terraria.UI.Chat;
 
 namespace ImprovedInterface.Content.PauseMenu;
 
-public class PauseMenuAchievements : UIList
+public class PauseMenuAchievements : FadedList
 {
     public static bool AchievementsOpen;
     public static float AchievementsFade;
@@ -41,7 +42,10 @@ public class PauseMenuAchievements : UIList
 
         IgnoresMouseInteraction = !AchievementsOpen;
 
-        AchievementsFade += AchievementsOpen.ToDirectionInt() * 0.07f;
+        AchievementsFade += AchievementsOpen.ToDirectionInt() * 0.1f;
         AchievementsFade = MathF.Saturate(AchievementsFade);
+        
+        PaddingLeft = MathHelper.SmoothStep(0, 25f, AchievementsFade);
+        Recalculate();
     }
 }
