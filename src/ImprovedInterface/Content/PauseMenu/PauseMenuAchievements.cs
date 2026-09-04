@@ -22,17 +22,11 @@ public class PauseMenuAchievements : FadedList
     public PauseMenuAchievements() : base()
     {
         SetScrollbar(new UIScrollbar());
-        
-        Add(new PauseMenuAchievementItem(Main.Achievements.GetAchievement("LIKE_A_BOSS")));
-        Add(new PauseMenuAchievementItem(Main.Achievements.GetAchievement("DEFEAT_QUEEN_SLIME")));
-        Add(new PauseMenuAchievementItem(Main.Achievements.GetAchievement("SUPREME_HELPER_MINION")));
-        Add(new PauseMenuAchievementItem(Main.Achievements.GetAchievement("DEFEAT_OLD_ONES_ARMY_TIER3")));
-        Add(new PauseMenuAchievementItem(Main.Achievements.GetAchievement("TO_INFINITY_AND_BEYOND")));
-        Add(new PauseMenuAchievementItem(Main.Achievements.GetAchievement("ROLLIN_IN_YOUR_GRAVE")));
-        Add(new PauseMenuAchievementItem(Main.Achievements.GetAchievement("FEAR_THE_SUN")));
-        for (int i = 0; i < 20; i++)
+
+        var list = Main.Achievements.CreateAchievementsList();
+        foreach (var item in list)
         {
-            Add(new PauseMenuAchievementItem(Main.Achievements.GetAchievement("EXTRA_LIFE")));
+            Add(new PauseMenuAchievementItem(item));
         }
     }
     
